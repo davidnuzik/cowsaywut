@@ -16,40 +16,51 @@
 ## lolcat default -d (animation duration) is 12. Us 2 for better performance such as on a pi zero.
 ###############################################################
 
+declare -A prereq_check ## Associative array (map) is leveraged to store error messages for missing packages this can be simplified later into a simple array...
+
 # Check that cowsay, lolcat, and fortune can be invoked
 printf "\nChecking that all pre-reqs exist on PATH...\n\n" && sleep .5
 
 ## Declare function to check all pre-reqs
 function which_check {
+
 which $1 >/dev/null 2>&1
 
 if [ $? -ne 0 ] #check for non-zero exit code (check if the package is not on path)
   then
-    # is true, therefore the prereq is NOT on path (not good)
-    echo "$prereq IS NOT ON PATH (NOT GOOD)."
-    sleep .5
-  else
-    # is false, therefore the prereq is on path (good)
-    echo "$prereq gave us a zero exit code... (this is good)."
-    sleep .5
+    # is true, therefore the prereq is NOT on path (not good). Store error message in associative array to output to user later.
+    prereq_check[$1]="$1 not on path (NOT GOOD)."
+    sleep .25
 fi
 }
 
-## Invoke which_check function in a for loop for each prereq (package) we need
+## Invoke which_check function in a for loop for each prereq (package) we need so we can store any errors in prereq_check associative array.
 for prereq in cowsay fortune lolcat
   do
-    echo "Checking $prereq..." && which_check $prereq && sleep 1
+    echo "Checking that $prereq package is on PATH..." && which_check $prereq && sleep .5
 done
 
-# temporary pause and EXIT 199 to express completion of for loop / function.
-sleep 3
-exit 199
+# print any values (erors) stored in prereq_check i.f.f. the array has any
+if [ ${#prereq_check[@]} -gt 0 ] # if the associative array is not empty then...
+  then
+    for i in "${!prereq_check[@]}" # for each entry in the array do...
+      do
+        if [ ! -z "${prereq_check[$i]}" ] # do this check, if an entry has a value then print it out to the user so they know which prereq packages they need before they can run the script.
+          then 
+          printf "${prereq_check[$i]}\n"
+        fi
+    done
+    exit 222 # exit 222 to indicate 1 or more packages are missing
+fi
 
 # clear terminal window
+sleep 1
 clear
-sleep .3
 
-# printf the intro and use lolcat.
+##############################################################
+# Start the fun part of the script here if passed our checks #
+##############################################################
+# printf the intro and use lolcat.       
 printf "\n   __________ _       _______ _____  __   _       ____  ___________ \n  / ____/ __ \ |     / / ___//   \ \/ /  | |     / / / / /_  __/__ \ \n / /   / / / / | /| / /\__ \/ /| |\  /   | | /| / / / / / / /   / _/ \n/ /___/ /_/ /| |/ |/ /___/ / ___ |/ /    | |/ |/ / /_/ / / /   /_/  \n\____/\____/ |__/|__//____/_/  |_/_/     |__/|__/\____/ /_/   (_)   \n                                                                   \n" | lolcat -a -s 40 -d 4
 
 # cowsay intro line (perhaps later can pick from a list of lines to say)
