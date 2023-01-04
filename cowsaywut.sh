@@ -53,7 +53,7 @@ if [ ${#prereq_check[@]} -gt 0 ] # if the associative array is not empty then...
           printf "${prereq_check[$i]}\n"
         fi
     done
-    #exit 111 # exit 111 to indicate 1 or more packages are missing
+    exit 111 # exit 111 to indicate 1 or more packages are missing
 fi
 
 # Check if the TERM supports enough colors for lolcat. If not just warn and ask the user if they want to continue anyway.
